@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         ORBIT
 // @namespace    http://tampermonkey.net/
-// @version      1.01
+// @version      1.02
 // @description  Old Reddit Ban Insertion Tool -- Autofill ban fields on the Old Reddit ban page based on made-up URL parameters.
 // @author       portable-hole
 // @match        https://old.reddit.com/r/DadsGoneWild/about/banned/*
-// @downloadURL  
-// @updateURL    
+// @downloadURL  https://github.com/portable-hole/ORBIT/raw/main/ORBIT.user.js
+// @updateURL    https://github.com/portable-hole/ORBIT/raw/main/ORBIT.user.js
 // @grant        none
 // ==/UserScript==
 
