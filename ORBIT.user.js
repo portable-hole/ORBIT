@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         ORBIT
 // @namespace    http://tampermonkey.net/
-// @version      1.02
+// @version      1.03
 // @description  Old Reddit Ban Insertion Tool -- Autofill ban fields on the Old Reddit ban page based on made-up URL parameters.
 // @author       portable-hole
-// @match        https://old.reddit.com/r/DadsGoneWild/about/banned/*
+// @match        https://old.reddit.com/r/*/about/banned/*
 // @downloadURL  https://github.com/portable-hole/ORBIT/raw/main/ORBIT.user.js
 // @updateURL    https://github.com/portable-hole/ORBIT/raw/main/ORBIT.user.js
 // @grant        none
@@ -12,6 +12,26 @@
 
 (function() {
     'use strict';
+
+    // Define your key-pair dictionary here
+    // BE SURE to list subreddit in all lowercase, as the script does a comparison to lowercase.
+    const subredditBanConfig = {
+        "dadsgonewild": {
+            "message": "You have been banned for violating **Rule 2**. All content must depict men **aged 30+ only**. Do not post content outside this scope. You are ",
+            "requiredAge": 30
+        },
+        "olddicks": {
+            "message": "You have been banned for violating **Rule 2**. All content must depict men **aged 40+ only**. Do not post content outside this scope. You are ",
+            "requiredAge": 40
+        },
+        "grandpasgonewild": {
+            "message": "You have been banned for violating **Rule 2**. All content must depict men **aged 50+ only**. Do not post content outside this scope. You are ",
+            "requiredAge": 50
+        }
+        // Add other subreddits as needed
+    };
+
+    const defaultBanMessage = "You have been banned for violating the subreddit rules.";
 
     // Parse URL parameters
     function getParameterByName(name, url) {
@@ -41,7 +61,7 @@
         let realAge = parseInt(realAgeString, 10);
         let ageFake = parseInt(ageFakeString, 10);
 
-        if (isNaN(realAge) || isNaN(ageFake) || realAge >= 30) {
+        if (isNaN(realAge) || isNaN(ageFake)) {
             console.log("Invalid or missing age parameters.");
             return; // Invalid or missing age parameters
         }
@@ -49,13 +69,27 @@
         console.log("Real Age:", realAge);
         console.log("Age Fake:", ageFake);
 
-        let banDuration = ''; // Blank ban duration by default
+        let subredditMatch = window.location.href.match(/https:\/\/old\.reddit\.com\/r\/(.*?)\//);
+        let subreddit = (subredditMatch && subredditMatch[1]) ? subredditMatch[1].toLowerCase() : null;
 
-        if (realAge >= 27 && realAge <= 29) {
-            banDuration = Math.max(330 * (30 - realAge), 1);
+        let config = subredditBanConfig[subreddit];
+
+        let banMessage, banDuration;
+
+        if (config) {
+            banMessage = config.message + realAge + ".";
+            let ageDifference = config.requiredAge - realAge;
+            if (ageDifference === 3) {
+                banDuration = 999; // Maximum allowable ban
+            } else if (ageDifference >= 1 && ageDifference <= 2) {
+                banDuration = Math.max(330 * ageDifference, 1);
+            } else {
+                banDuration = ''; // Permanent ban
+            }
+        } else {
+            banMessage = defaultBanMessage;
+            banDuration = ''; // Default is permanent ban, adjust if needed
         }
-
-        let banMessage = "You have been banned for violating **Rule 2**. All content must depict men **aged 30+ only**. Do not post content outside this scope. You are " + realAge + ".";
 
         // Fill fields
         document.querySelector('.friend-name').value = username;
